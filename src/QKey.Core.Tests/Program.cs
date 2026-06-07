@@ -64,6 +64,15 @@ var loadedSettings = store.Load();
 Equal(loadedSettings.InputMethod.ToString(), InputMethod.Vni.ToString(), "settings persists input method");
 True(loadedSettings.QuickStartConsonant, "settings persists quick start");
 True(loadedSettings.QuickEndConsonant, "settings persists quick end");
+File.WriteAllText(settingsPath, string.Empty);
+True(store.Load().Enabled, "settings empty json returns defaults");
+File.WriteAllText(settingsPath, "not json");
+True(store.Load().Enabled, "settings invalid json returns defaults");
+File.WriteAllText(settingsPath, "null");
+True(store.Load().Enabled, "settings null json returns defaults");
 File.Delete(settingsPath);
+
+Equal(ReplacementPlan.ForCurrentWord("tieng", "tiếng").BackspaceCount.ToString(), "5", "normal replacement backspaces rendered length");
+Equal(ReplacementPlan.ForCurrentWord("dc", "được ", 3).BackspaceCount.ToString(), "3", "macro replacement can include typed space");
 
 Console.WriteLine("OK: QKey .NET core tests passed");

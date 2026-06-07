@@ -41,9 +41,25 @@ public sealed class SettingsStore
 
     public AppSettings Load()
     {
-        if (!File.Exists(_path)) return new AppSettings();
-        var json = File.ReadAllText(_path);
-        return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+        try
+        {
+            if (!File.Exists(_path)) return new AppSettings();
+            var json = File.ReadAllText(_path);
+            if (string.IsNullOrWhiteSpace(json)) return new AppSettings();
+            return JsonSerializer.Deserialize<AppSettings>(json, JsonOptions) ?? new AppSettings();
+        }
+        catch (IOException)
+        {
+            return new AppSettings();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return new AppSettings();
+        }
+        catch (JsonException)
+        {
+            return new AppSettings();
+        }
     }
 
     public void Save(AppSettings settings)

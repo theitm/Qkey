@@ -2,6 +2,18 @@
 
 Dự án tuân theo tinh thần [Keep a Changelog](https://keepachangelog.com/) và Semantic Versioning.
 
+## [0.2.4] - 2026-06-07
+
+### Fixed
+- Tăng độ bền khi đọc settings JSON lỗi/trống/không đọc được bằng cách quay về mặc định.
+- Sửa lỗi backspace thừa khi thay thế từ đang gõ và giữ đúng macro kèm dấu cách.
+- Khôi phục text clipboard sau khi QKey dùng paste để thay thế chữ.
+- Báo lỗi rõ nếu Windows keyboard hook không cài được, tránh tray báo ON giả.
+- Dọn rò rỉ tray menu cũ khi đổi settings.
+
+### Changed
+- Bỏ qua thư mục cache `.codegraph/` khỏi git.
+
 ## [0.2.0] - 2026-06-07
 
 ### Added

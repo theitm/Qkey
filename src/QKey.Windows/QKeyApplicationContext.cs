@@ -1,4 +1,5 @@
 using QKey.Core;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -132,7 +133,7 @@ internal sealed class QKeyApplicationContext : ApplicationContext
             if (e.Key == Keys.Space && _macros.TryExpand(_raw, out var replacement))
             {
                 e.Handled = true;
-                ReplaceCurrentWord((replacement ?? string.Empty) + " ");
+                ReplaceCurrentWord((replacement ?? string.Empty) + " ", _rendered.Length + 1);
             }
             ResetBuffer();
             return;
@@ -155,18 +156,53 @@ internal sealed class QKeyApplicationContext : ApplicationContext
 
     private VietnameseEngine CurrentEngine() => new(_settings.ToEngineOptions());
 
-    private void ReplaceCurrentWord(string text)
+    private void ReplaceCurrentWord(string text, int? backspaceCount = null)
     {
+        var plan = ReplacementPlan.ForCurrentWord(_rendered, text, backspaceCount);
         _injecting = true;
+        var previousClipboardText = TryGetClipboardText();
         try
         {
-            SendKeys.SendWait(new string('\b', Math.Max(0, _rendered.Length + 1)));
-            Clipboard.SetText(text);
-            SendKeys.SendWait("^v");
+            SendKeys.SendWait(new string('\b', plan.BackspaceCount));
+            if (TrySetClipboardText(plan.Text)) SendKeys.SendWait("^v");
         }
         finally
         {
+            if (previousClipboardText is not null) TrySetClipboardText(previousClipboardText);
             _injecting = false;
+        }
+    }
+
+    private static string? TryGetClipboardText()
+    {
+        try
+        {
+            return Clipboard.ContainsText() ? Clipboard.GetText() : null;
+        }
+        catch (ExternalException)
+        {
+            return null;
+        }
+        catch (ThreadStateException)
+        {
+            return null;
+        }
+    }
+
+    private static bool TrySetClipboardText(string text)
+    {
+        try
+        {
+            Clipboard.SetText(text);
+            return true;
+        }
+        catch (ExternalException)
+        {
+            return false;
+        }
+        catch (ThreadStateException)
+        {
+            return false;
         }
     }
 
@@ -207,7 +243,9 @@ internal sealed class QKeyApplicationContext : ApplicationContext
         _settings = settings;
         _settingsStore.Save(_settings);
         ResetBuffer();
+        var oldMenu = _notifyIcon.ContextMenuStrip;
         _notifyIcon.ContextMenuStrip = BuildMenu();
+        oldMenu?.Dispose();
         UpdateTrayText();
     }
 
@@ -271,6 +309,7 @@ internal sealed class KeyboardHook : IDisposable
     public void Start()
     {
         _hookId = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, GetModuleHandle(null), 0);
+        if (_hookId == IntPtr.Zero) throw new Win32Exception(Marshal.GetLastWin32Error(), "Unable to install keyboard hook");
     }
 
     private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
