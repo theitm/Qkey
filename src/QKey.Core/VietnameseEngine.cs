@@ -42,23 +42,23 @@ public sealed class VietnameseEngine
         return _options.InputMethod switch
         {
             InputMethod.Vni => ConvertVni(raw),
-            InputMethod.SimpleTelex1 => ConvertTelex(raw, simple1: true),
-            InputMethod.SimpleTelex2 => ConvertTelex(raw, simple2: true),
-            _ => ConvertTelex(raw)
+            InputMethod.SimpleTelex1 => ConvertTelex(raw, _options, simple1: true),
+            InputMethod.SimpleTelex2 => ConvertTelex(raw, _options, simple2: true),
+            _ => ConvertTelex(raw, _options)
         };
     }
 
-    private static string ConvertTelex(string raw, bool simple1 = false, bool simple2 = false)
+    private static string ConvertTelex(string raw, EngineOptions options, bool simple1 = false, bool simple2 = false)
     {
         var output = string.Empty;
         foreach (var ch in raw)
         {
             var low = char.ToLowerInvariant(ch);
-            if (TelexTone(low) is { } tone)
+            if (!(options.QuickStartConsonant && output.Length == 0 && low is 'f' or 'j') && TelexTone(low) is { } tone)
             {
                 output = ApplyTone(output, tone);
             }
-            else if (low == 'w' && !simple1)
+            else if (low == 'w' && !simple1 && !(options.QuickStartConsonant && output.Length == 0))
             {
                 if (output.Length >= 2 && Normalize(output[^2]).Base == 'u' && Normalize(output[^1]).Base == 'o')
                 {
@@ -92,7 +92,58 @@ public sealed class VietnameseEngine
                 output += ch;
             }
         }
-        return output;
+        return ApplyQuickTyping(output, options);
+    }
+
+    private static string ApplyQuickTyping(string word, EngineOptions options)
+    {
+        if (options.QuickTelex)
+        {
+            word = ReplacePrefix(word, "cc", "ch");
+            word = ReplacePrefix(word, "gg", "gi");
+            word = ReplacePrefix(word, "kk", "kh");
+            word = ReplacePrefix(word, "nn", "ng");
+            word = ReplacePrefix(word, "pp", "ph");
+            word = ReplacePrefix(word, "qq", "qu");
+            word = ReplacePrefix(word, "tt", "th");
+        }
+
+        if (options.QuickStartConsonant)
+        {
+            word = ReplacePrefix(word, "f", "ph");
+            word = ReplacePrefix(word, "j", "gi");
+            word = ReplacePrefix(word, "w", "qu");
+        }
+
+        if (options.QuickEndConsonant)
+        {
+            word = ReplaceSuffix(word, "g", "ng");
+            word = ReplaceSuffix(word, "h", "nh");
+            word = ReplaceSuffix(word, "k", "ch");
+        }
+
+        return word;
+    }
+
+    private static string ReplacePrefix(string word, string prefix, string replacement)
+    {
+        if (!word.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return word;
+        var actual = word[..prefix.Length];
+        return MatchCasing(actual, replacement) + word[prefix.Length..];
+    }
+
+    private static string ReplaceSuffix(string word, string suffix, string replacement)
+    {
+        if (!word.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) return word;
+        var actual = word[^suffix.Length..];
+        return word[..^suffix.Length] + MatchCasing(actual, replacement);
+    }
+
+    private static string MatchCasing(string source, string value)
+    {
+        if (source.All(char.IsUpper)) return value.ToUpperInvariant();
+        if (char.IsUpper(source[0])) return char.ToUpperInvariant(value[0]) + value[1..];
+        return value;
     }
 
     private static string ConvertVni(string raw)

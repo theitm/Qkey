@@ -16,6 +16,8 @@
 - Core engine C#/.NET 8:
   - Telex Unicode cơ bản.
   - VNI Unicode cơ bản.
+  - Simple Telex 1/2.
+  - Quick Typing: Quick Telex, Quick Start Consonant, Quick End Consonant.
   - Macro manager.
   - Text converter: xóa dấu, sentence case, title case.
 - Windows tray app skeleton:
@@ -72,7 +74,7 @@ Repo cũng có GitHub Actions `Windows Build` để build tự động trên `wi
 
 - GitHub Actions build Windows `.exe` release artifact.
 - Settings UI cho input method, macro, hotkey, excluded apps.
-- Quick Telex, Quick Start/End consonants.
+- Mở rộng Quick Typing vào Windows settings UI.
 - Spell check và restore-if-wrong-spelling.
 - Smart switch theo app/window.
 - Debug/log window.

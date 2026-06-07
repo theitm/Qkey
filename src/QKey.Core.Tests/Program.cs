@@ -18,6 +18,26 @@ Equal(telex.ConvertWord("ddawng"), "đăng", "telex dd aw");
 Equal(telex.ConvertWord("tuowng"), "tương", "telex uow");
 Equal(telex.ConvertWord("Tooi"), "Tôi", "telex case");
 
+var quickTelex = new VietnameseEngine(new EngineOptions { InputMethod = InputMethod.Telex, QuickTelex = true });
+Equal(quickTelex.ConvertWord("ccao"), "chao", "quick telex cc -> ch");
+Equal(quickTelex.ConvertWord("ggapwj"), "giặp", "quick telex gg -> gi with tone");
+
+var quickStart = new VietnameseEngine(new EngineOptions { InputMethod = InputMethod.Telex, QuickStartConsonant = true });
+Equal(quickStart.ConvertWord("fan"), "phan", "quick start f -> ph");
+Equal(quickStart.ConvertWord("jang"), "giang", "quick start j -> gi");
+Equal(quickStart.ConvertWord("wen"), "quen", "quick start w -> qu");
+
+var quickEnd = new VietnameseEngine(new EngineOptions { InputMethod = InputMethod.Telex, QuickEndConsonant = true });
+Equal(quickEnd.ConvertWord("mag"), "mang", "quick end g -> ng");
+Equal(quickEnd.ConvertWord("tih"), "tinh", "quick end h -> nh");
+Equal(quickEnd.ConvertWord("cak"), "cach", "quick end k -> ch");
+
+var simple1 = new VietnameseEngine(new EngineOptions { InputMethod = InputMethod.SimpleTelex1 });
+Equal(simple1.ConvertWord("aw"), "aw", "simple telex 1 leaves w unchanged");
+
+var simple2 = new VietnameseEngine(new EngineOptions { InputMethod = InputMethod.SimpleTelex2 });
+Equal(simple2.ConvertWord("tuow"), "tươ", "simple telex 2 uses w for ư/ơ");
+
 var vni = new VietnameseEngine(new EngineOptions { InputMethod = InputMethod.Vni });
 Equal(vni.ConvertWord("tie61ng"), "tiếng", "vni tone");
 Equal(vni.ConvertWord("Vie65t"), "Việt", "vni uppercase");
