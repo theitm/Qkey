@@ -2,6 +2,19 @@
 
 Dự án tuân theo tinh thần [Keep a Changelog](https://keepachangelog.com/) và Semantic Versioning.
 
+## [0.2.0] - 2026-06-07
+
+### Added
+- Thêm solution .NET 8 cho hướng Windows tử tế.
+- Thêm `QKey.Core` với engine Telex/VNI Unicode cơ bản.
+- Thêm `MacroManager` và `TextConverter`.
+- Thêm `QKey.Core.Tests` console test harness không phụ thuộc NuGet.
+- Thêm `QKey.Windows` WinForms tray app skeleton với low-level keyboard hook.
+- Thêm kế hoạch triển khai Windows native trong `docs/plans/`.
+
+### Changed
+- Cập nhật README/architecture: AutoHotkey chỉ còn là prototype/fallback, không phải hướng chính.
+
 ## [0.1.0] - 2026-06-07
 
 ### Added

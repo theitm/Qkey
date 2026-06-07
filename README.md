@@ -1,54 +1,78 @@
 # QKey
 
-**QKey** là bộ gõ tiếng Việt nhẹ cho Windows, chạy local, ưu tiên Telex/VNI, macro và chuyển đổi nhanh.
+**QKey** là bộ gõ tiếng Việt cho Windows, viết mới bằng C#/.NET, ưu tiên core engine sạch, test được và có thể nâng lên Windows TSF IME native trong các phase sau.
 
-> Trạng thái: MVP/preview. QKey dùng AutoHotkey v2 để có bản Windows nhẹ, dễ chạy và dễ đóng gói.
+> Trạng thái: early preview. Phiên bản hiện tại đã chuyển hướng khỏi AutoHotkey prototype sang nền tảng .NET tử tế hơn: `QKey.Core` + `QKey.Windows` tray app.
+
+## Mục tiêu
+
+- Bộ gõ Windows nhẹ, chạy local, không gửi dữ liệu ra ngoài.
+- Telex/VNI ổn định trước, sau đó mở rộng Simple Telex, Quick Typing, Macro, Smart Switch.
+- Core engine tách riêng để test tự động và tái dùng cho TSF IME native.
+- UX đơn giản: tray icon, hotkey bật/tắt, settings UI ở phase sau.
 
 ## Tính năng hiện có
 
-- Gõ tiếng Việt Unicode bằng **Telex**.
-- Gõ tiếng Việt Unicode bằng **VNI**.
-- Bật/tắt nhanh bằng `Ctrl+Shift+V`.
-- Chuyển Telex/VNI bằng `Ctrl+Shift+M`.
-- Macro cơ bản trong `src/QKey.ahk`.
-- Script kiểm thử engine bằng Python để xác minh quy tắc chuyển đổi.
+- Core engine C#/.NET 8:
+  - Telex Unicode cơ bản.
+  - VNI Unicode cơ bản.
+  - Macro manager.
+  - Text converter: xóa dấu, sentence case, title case.
+- Windows tray app skeleton:
+  - Low-level keyboard hook.
+  - Bật/tắt bằng `Ctrl+Shift+V`.
+  - Chuyển Telex/VNI bằng `Ctrl+Shift+M`.
+  - Macro expansion khi nhấn Space.
+- Test harness chạy được không cần NuGet.
+- AutoHotkey prototype vẫn còn ở `src/QKey.ahk` như fallback tạm thời, không phải hướng chính.
 
-## Cài đặt nhanh trên Windows
+## Cấu trúc repo
 
-1. Cài [AutoHotkey v2](https://www.autohotkey.com/).
-2. Tải repo này về máy Windows.
-3. Double-click `src/QKey.ahk`.
-4. Mở Notepad/Word/Chrome và gõ thử:
-   - Telex: `tieengs Vieetj Nam` → `tiếng Việt Nam`
-   - VNI: nhấn `Ctrl+Shift+M`, gõ `tie61ng Vie65t Nam` → `tiếng Việt Nam`
+```text
+src/QKey.Core/        Core engine, macro, converter
+src/QKey.Core.Tests/  Console test harness
+src/QKey.Windows/     Windows tray app
+src/QKey.ahk          Legacy prototype/fallback
+docs/                 Kiến trúc, changelog, kế hoạch
+```
 
-## Phím tắt
+## Build/test core
+
+Trên Linux/macOS/Windows có .NET 8 SDK:
+
+```bash
+dotnet build src/QKey.Core.Tests/QKey.Core.Tests.csproj
+dotnet run --project src/QKey.Core.Tests/QKey.Core.Tests.csproj
+```
+
+Kết quả mong đợi:
+
+```text
+OK: QKey .NET core tests passed
+```
+
+## Build Windows app
+
+Trên Windows có .NET 8 SDK:
+
+```powershell
+dotnet publish src/QKey.Windows/QKey.Windows.csproj -c Release -r win-x64 --self-contained true
+```
+
+Chạy file `QKey.exe` trong thư mục publish.
+
+## Phím tắt Windows app
 
 - `Ctrl+Shift+V`: bật/tắt QKey.
 - `Ctrl+Shift+M`: chuyển Telex/VNI.
-- `Ctrl+Shift+R`: reload script.
-
-## Giới hạn MVP
-
-- Chưa có GUI settings đầy đủ.
-- Chưa hỗ trợ TCVN3/VNI Windows font legacy.
-- Cơ chế inject dùng clipboard fallback của AutoHotkey, có thể cần tinh chỉnh thêm cho một số app bảo mật hoặc game.
-- Chưa có installer `.exe`; có thể compile bằng Ahk2Exe trên Windows.
-
-## Kiểm thử trên Linux/dev box
-
-Repo có bản engine Python tương đương để test logic chuyển đổi:
-
-```bash
-python3 tests/test_engine.py
-```
 
 ## Roadmap
 
-- Settings UI nhỏ bằng AutoHotkey GUI.
-- Import/export macro.
+- GitHub Actions build Windows `.exe` release artifact.
+- Settings UI cho input method, macro, hotkey, excluded apps.
+- Quick Telex, Quick Start/End consonants.
+- Spell check và restore-if-wrong-spelling.
 - Smart switch theo app/window.
-- Build release `.exe` bằng GitHub Actions Windows runner.
-- Tách engine sang C#/Rust nếu cần độ ổn định cao hơn.
-
-
+- Debug/log window.
+- TCVN3/VNI Windows legacy code tables.
+- TSF IME native khi core ổn định.

@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QKey.Core", "src\QKey.Core\QKey.Core.csproj", "{7F68C7A1-9981-47C4-A269-50C8480C0F81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QKey.Core.Tests", "src\QKey.Core.Tests\QKey.Core.Tests.csproj", "{00E3DD6E-3D15-4B79-891A-091F6C9AF81E}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {7F68C7A1-9981-47C4-A269-50C8480C0F81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {7F68C7A1-9981-47C4-A269-50C8480C0F81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {7F68C7A1-9981-47C4-A269-50C8480C0F81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {7F68C7A1-9981-47C4-A269-50C8480C0F81}.Release|Any CPU.Build.0 = Release|Any CPU
+        {00E3DD6E-3D15-4B79-891A-091F6C9AF81E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {00E3DD6E-3D15-4B79-891A-091F6C9AF81E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {00E3DD6E-3D15-4B79-891A-091F6C9AF81E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {00E3DD6E-3D15-4B79-891A-091F6C9AF81E}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+EndGlobal
