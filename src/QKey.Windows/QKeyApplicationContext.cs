@@ -45,8 +45,12 @@ internal sealed class QKeyApplicationContext : ApplicationContext
     private ContextMenuStrip BuildMenu()
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Bật/tắt QKey (Ctrl+Shift+V)", null, (_, _) => ToggleEnabled())
-            .Checked = _settings.Enabled;
+        var enabledItem = new ToolStripMenuItem("Bật/tắt QKey (Ctrl+Shift+V)")
+        {
+            Checked = _settings.Enabled
+        };
+        enabledItem.Click += (_, _) => ToggleEnabled();
+        menu.Items.Add(enabledItem);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add(BuildInputMethodMenu());
         menu.Items.Add(BuildQuickTypingMenu());
