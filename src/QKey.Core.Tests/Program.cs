@@ -53,4 +53,17 @@ var converter = new TextConverter();
 Equal(converter.RemoveDiacritics("Tiếng Việt"), "Tieng Viet", "remove diacritics");
 Equal(converter.ToSentenceCase("xin chào"), "Xin chào", "sentence case");
 
+var settingsPath = Path.Combine(Path.GetTempPath(), $"qkey-settings-{Guid.NewGuid():N}.json");
+var store = new SettingsStore(settingsPath);
+var defaultSettings = store.Load();
+True(defaultSettings.Enabled, "settings default enabled");
+Equal(defaultSettings.InputMethod.ToString(), InputMethod.Telex.ToString(), "settings default input method");
+var savedSettings = defaultSettings with { InputMethod = InputMethod.Vni, QuickStartConsonant = true, QuickEndConsonant = true };
+store.Save(savedSettings);
+var loadedSettings = store.Load();
+Equal(loadedSettings.InputMethod.ToString(), InputMethod.Vni.ToString(), "settings persists input method");
+True(loadedSettings.QuickStartConsonant, "settings persists quick start");
+True(loadedSettings.QuickEndConsonant, "settings persists quick end");
+File.Delete(settingsPath);
+
 Console.WriteLine("OK: QKey .NET core tests passed");

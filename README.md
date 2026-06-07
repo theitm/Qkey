@@ -23,7 +23,9 @@
 - Windows tray app skeleton:
   - Low-level keyboard hook.
   - Bật/tắt bằng `Ctrl+Shift+V`.
-  - Chuyển Telex/VNI bằng `Ctrl+Shift+M`.
+  - Chuyển Telex/VNI/Simple Telex bằng `Ctrl+Shift+M`.
+  - Tray menu cấu hình kiểu gõ và Quick Typing.
+  - Lưu settings JSON tại `%AppData%\QKey\settings.json`.
   - Macro expansion khi nhấn Space.
 - Test harness chạy được không cần NuGet.
 - AutoHotkey prototype vẫn còn ở `src/QKey.ahk` như fallback tạm thời, không phải hướng chính.
@@ -68,13 +70,27 @@ Repo cũng có GitHub Actions `Windows Build` để build tự động trên `wi
 ## Phím tắt Windows app
 
 - `Ctrl+Shift+V`: bật/tắt QKey.
-- `Ctrl+Shift+M`: chuyển Telex/VNI.
+- `Ctrl+Shift+M`: xoay vòng Telex/VNI/Simple Telex 1/Simple Telex 2.
+
+## Cấu hình
+
+QKey lưu cấu hình tại:
+
+```text
+%AppData%\QKey\settings.json
+```
+
+Tray menu hiện hỗ trợ bật/tắt:
+
+- Kiểu gõ: Telex, VNI, Simple Telex 1, Simple Telex 2.
+- Quick Telex.
+- Quick Start Consonant.
+- Quick End Consonant.
 
 ## Roadmap
 
 - GitHub Actions build Windows `.exe` release artifact.
-- Settings UI cho input method, macro, hotkey, excluded apps.
-- Mở rộng Quick Typing vào Windows settings UI.
+- Settings UI đầy đủ cho macro, hotkey, excluded apps.
 - Spell check và restore-if-wrong-spelling.
 - Smart switch theo app/window.
 - Debug/log window.

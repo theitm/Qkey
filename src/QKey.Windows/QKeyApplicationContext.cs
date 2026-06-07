@@ -1,6 +1,5 @@
 using QKey.Core;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 
 namespace QKey.Windows;
@@ -9,17 +8,18 @@ internal sealed class QKeyApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon _notifyIcon;
     private readonly KeyboardHook _hook;
-    private readonly VietnameseEngine _telex = new(new EngineOptions { InputMethod = InputMethod.Telex });
-    private readonly VietnameseEngine _vni = new(new EngineOptions { InputMethod = InputMethod.Vni });
     private readonly MacroManager _macros = new();
-    private bool _enabled = true;
-    private InputMethod _method = InputMethod.Telex;
+    private readonly SettingsStore _settingsStore;
+    private AppSettings _settings;
     private string _raw = string.Empty;
     private string _rendered = string.Empty;
     private bool _injecting;
 
     public QKeyApplicationContext()
     {
+        _settingsStore = new SettingsStore(DefaultSettingsPath());
+        _settings = _settingsStore.Load();
+
         _macros.Set("dc", "được");
         _macros.Set("vn", "Việt Nam");
 
@@ -36,13 +36,63 @@ internal sealed class QKeyApplicationContext : ApplicationContext
         _hook.Start();
     }
 
+    private static string DefaultSettingsPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(appData, "QKey", "settings.json");
+    }
+
     private ContextMenuStrip BuildMenu()
     {
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Bật/tắt QKey (Ctrl+Shift+V)", null, (_, _) => ToggleEnabled());
-        menu.Items.Add("Đổi Telex/VNI (Ctrl+Shift+M)", null, (_, _) => ToggleMethod());
+        menu.Items.Add("Bật/tắt QKey (Ctrl+Shift+V)", null, (_, _) => ToggleEnabled())
+            .Checked = _settings.Enabled;
+        menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add(BuildInputMethodMenu());
+        menu.Items.Add(BuildQuickTypingMenu());
+        menu.Items.Add(new ToolStripSeparator());
+        menu.Items.Add("Mở thư mục cấu hình", null, (_, _) => OpenSettingsFolder());
         menu.Items.Add("Thoát", null, (_, _) => ExitThread());
         return menu;
+    }
+
+    private ToolStripMenuItem BuildInputMethodMenu()
+    {
+        var menu = new ToolStripMenuItem("Kiểu gõ");
+        AddInputMethodItem(menu, "Telex", InputMethod.Telex);
+        AddInputMethodItem(menu, "VNI", InputMethod.Vni);
+        AddInputMethodItem(menu, "Simple Telex 1", InputMethod.SimpleTelex1);
+        AddInputMethodItem(menu, "Simple Telex 2", InputMethod.SimpleTelex2);
+        return menu;
+    }
+
+    private void AddInputMethodItem(ToolStripMenuItem menu, string text, InputMethod method)
+    {
+        var item = new ToolStripMenuItem(text)
+        {
+            Checked = _settings.InputMethod == method
+        };
+        item.Click += (_, _) => UpdateSettings(_settings with { InputMethod = method });
+        menu.DropDownItems.Add(item);
+    }
+
+    private ToolStripMenuItem BuildQuickTypingMenu()
+    {
+        var menu = new ToolStripMenuItem("Quick Typing");
+        menu.DropDownItems.Add(BuildBooleanItem("Quick Telex", _settings.QuickTelex,
+            value => _settings with { QuickTelex = value }));
+        menu.DropDownItems.Add(BuildBooleanItem("Quick Start Consonant", _settings.QuickStartConsonant,
+            value => _settings with { QuickStartConsonant = value }));
+        menu.DropDownItems.Add(BuildBooleanItem("Quick End Consonant", _settings.QuickEndConsonant,
+            value => _settings with { QuickEndConsonant = value }));
+        return menu;
+    }
+
+    private ToolStripMenuItem BuildBooleanItem(string text, bool current, Func<bool, AppSettings> update)
+    {
+        var item = new ToolStripMenuItem(text) { Checked = current };
+        item.Click += (_, _) => UpdateSettings(update(!current));
+        return item;
     }
 
     private void OnKeyPressed(object? sender, KeyPressedEventArgs e)
@@ -61,7 +111,7 @@ internal sealed class QKeyApplicationContext : ApplicationContext
             e.Handled = true;
             return;
         }
-        if (!_enabled) return;
+        if (!_settings.Enabled) return;
 
         if (e.Key == Keys.Back)
         {
@@ -99,7 +149,7 @@ internal sealed class QKeyApplicationContext : ApplicationContext
         _rendered = converted;
     }
 
-    private VietnameseEngine CurrentEngine() => _method == InputMethod.Vni ? _vni : _telex;
+    private VietnameseEngine CurrentEngine() => new(_settings.ToEngineOptions());
 
     private void ReplaceCurrentWord(string text)
     {
@@ -133,16 +183,40 @@ internal sealed class QKeyApplicationContext : ApplicationContext
 
     private void ToggleEnabled()
     {
-        _enabled = !_enabled;
-        ResetBuffer();
-        UpdateTrayText();
+        UpdateSettings(_settings with { Enabled = !_settings.Enabled });
     }
 
     private void ToggleMethod()
     {
-        _method = _method == InputMethod.Telex ? InputMethod.Vni : InputMethod.Telex;
+        var next = _settings.InputMethod switch
+        {
+            InputMethod.Telex => InputMethod.Vni,
+            InputMethod.Vni => InputMethod.SimpleTelex1,
+            InputMethod.SimpleTelex1 => InputMethod.SimpleTelex2,
+            _ => InputMethod.Telex
+        };
+        UpdateSettings(_settings with { InputMethod = next });
+    }
+
+    private void UpdateSettings(AppSettings settings)
+    {
+        _settings = settings;
+        _settingsStore.Save(_settings);
         ResetBuffer();
+        _notifyIcon.ContextMenuStrip = BuildMenu();
         UpdateTrayText();
+    }
+
+    private void OpenSettingsFolder()
+    {
+        var settingsDirectory = Path.GetDirectoryName(DefaultSettingsPath());
+        if (settingsDirectory is null) return;
+        Directory.CreateDirectory(settingsDirectory);
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = settingsDirectory,
+            UseShellExecute = true
+        });
     }
 
     private void ResetBuffer()
@@ -153,7 +227,7 @@ internal sealed class QKeyApplicationContext : ApplicationContext
 
     private void UpdateTrayText()
     {
-        _notifyIcon.Text = $"QKey {(_enabled ? "ON" : "OFF")} - {_method}";
+        _notifyIcon.Text = $"QKey {(_settings.Enabled ? "ON" : "OFF")} - {_settings.InputMethod}";
     }
 
     protected override void Dispose(bool disposing)
