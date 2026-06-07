@@ -1,48 +1,119 @@
 # QKey
 
-**QKey** là bộ gõ tiếng Việt cho Windows, viết mới bằng C#/.NET, ưu tiên core engine sạch, test được và có thể nâng lên Windows TSF IME native trong các phase sau.
+<p align="center">
+  <strong>Bộ gõ tiếng Việt nhẹ, riêng tư và kiểm thử được cho Windows.</strong>
+</p>
 
-> Trạng thái: early preview. Phiên bản hiện tại đã chuyển hướng khỏi AutoHotkey prototype sang nền tảng .NET tử tế hơn: `QKey.Core` + `QKey.Windows` tray app.
+<p align="center">
+  <a href="https://github.com/theitm/Qkey/actions/workflows/windows-build.yml"><img alt="Windows Build" src="https://github.com/theitm/Qkey/actions/workflows/windows-build.yml/badge.svg"></a>
+  <a href="https://github.com/theitm/Qkey/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/theitm/Qkey?sort=semver"></a>
+  <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4">
+  <img alt="Platform" src="https://img.shields.io/badge/platform-Windows-0078D4">
+</p>
 
-## Mục tiêu
+**QKey** là bộ gõ tiếng Việt cho Windows, viết mới bằng C#/.NET 8. Dự án ưu tiên một core engine sạch, có test tự động, chạy local và đủ linh hoạt để nâng cấp lên Windows TSF IME native ở các phase sau.
 
-- Bộ gõ Windows nhẹ, chạy local, không gửi dữ liệu ra ngoài.
-- Telex/VNI ổn định trước, sau đó mở rộng Simple Telex, Quick Typing, Macro, Smart Switch.
-- Core engine tách riêng để test tự động và tái dùng cho TSF IME native.
-- UX đơn giản: tray icon, hotkey bật/tắt, settings UI ở phase sau.
+> **Trạng thái:** early preview. QKey đã có core engine và Windows tray app dùng được ở mức thử nghiệm, nhưng chưa phải bản thay thế hoàn chỉnh cho bộ gõ hằng ngày.
+
+## Điểm nổi bật
+
+- **Riêng tư:** xử lý gõ tiếng Việt hoàn toàn local, không gửi nội dung gõ ra ngoài.
+- **Nhẹ:** tray app Windows nhỏ gọn, không cần service nền phức tạp.
+- **Có test:** core engine tách riêng và được kiểm thử bằng test harness chạy được trên Linux/macOS/Windows.
+- **Dễ mở rộng:** kiến trúc `QKey.Core` + `QKey.Windows`, sẵn đường nâng cấp sang TSF IME native.
+- **Có CI/CD:** GitHub Actions build app Windows và đính kèm artifact vào GitHub Release khi tạo tag `v*`.
 
 ## Tính năng hiện có
 
-- Core engine C#/.NET 8:
-  - Telex Unicode cơ bản.
-  - VNI Unicode cơ bản.
-  - Simple Telex 1/2.
-  - Quick Typing: Quick Telex, Quick Start Consonant, Quick End Consonant.
-  - Macro manager.
-  - Text converter: xóa dấu, sentence case, title case.
-- Windows tray app skeleton:
-  - Low-level keyboard hook.
-  - Bật/tắt bằng `Ctrl+Shift+V`.
-  - Chuyển Telex/VNI/Simple Telex bằng `Ctrl+Shift+M`.
-  - Tray menu cấu hình kiểu gõ và Quick Typing.
-  - Lưu settings JSON tại `%AppData%\QKey\settings.json`.
-  - Macro expansion khi nhấn Space.
-- Test harness chạy được không cần NuGet.
-- AutoHotkey prototype vẫn còn ở `src/QKey.ahk` như fallback tạm thời, không phải hướng chính.
+### Core engine
 
-## Cấu trúc repo
+- Telex Unicode cơ bản.
+- VNI Unicode cơ bản.
+- Simple Telex 1/2.
+- Quick Typing:
+  - Quick Telex.
+  - Quick Start Consonant.
+  - Quick End Consonant.
+- Macro manager.
+- Text converter:
+  - Xóa dấu.
+  - Sentence case.
+  - Title case.
+- Settings JSON:
+  - Kiểu gõ.
+  - Bật/tắt QKey.
+  - Quick Typing options.
+
+### Windows tray app
+
+- Low-level keyboard hook.
+- Tray icon/menu để bật tắt và đổi kiểu gõ.
+- Hotkey nhanh:
+  - `Ctrl+Shift+V`: bật/tắt QKey.
+  - `Ctrl+Shift+M`: xoay vòng Telex → VNI → Simple Telex 1 → Simple Telex 2.
+- Lưu cấu hình tại `%AppData%\QKey\settings.json`.
+- Macro expansion cơ bản khi nhấn `Space`.
+
+## Tải bản Windows
+
+Bản build tự động nằm trong GitHub Releases:
+
+- **Latest release:** https://github.com/theitm/Qkey/releases/latest
+- Artifact Windows: `QKey-win-x64.zip`
+
+Cách chạy thử:
+
+1. Tải `QKey-win-x64.zip` từ trang release.
+2. Giải nén.
+3. Chạy `QKey.exe`.
+4. Dùng tray icon để đổi kiểu gõ hoặc bật/tắt Quick Typing.
+
+> Windows có thể hiện cảnh báo SmartScreen vì app chưa ký code-signing certificate.
+
+## Cấu hình
+
+QKey lưu cấu hình người dùng tại:
 
 ```text
-src/QKey.Core/        Core engine, macro, converter
-src/QKey.Core.Tests/  Console test harness
-src/QKey.Windows/     Windows tray app
-src/QKey.ahk          Legacy prototype/fallback
-docs/                 Kiến trúc, changelog, kế hoạch
+%AppData%\QKey\settings.json
 ```
 
-## Build/test core
+Tray menu hiện hỗ trợ:
 
-Trên Linux/macOS/Windows có .NET 8 SDK:
+- Bật/tắt QKey.
+- Chọn kiểu gõ:
+  - Telex.
+  - VNI.
+  - Simple Telex 1.
+  - Simple Telex 2.
+- Bật/tắt Quick Typing:
+  - Quick Telex.
+  - Quick Start Consonant.
+  - Quick End Consonant.
+- Mở thư mục cấu hình.
+
+Ví dụ settings:
+
+```json
+{
+  "InputMethod": "Telex",
+  "CodeTable": "Unicode",
+  "Enabled": true,
+  "QuickTelex": true,
+  "QuickStartConsonant": false,
+  "QuickEndConsonant": false,
+  "SpellCheck": false,
+  "RestoreIfWrongSpelling": true
+}
+```
+
+## Build và test
+
+Yêu cầu:
+
+- .NET 8 SDK
+
+Chạy test core:
 
 ```bash
 dotnet build src/QKey.Core.Tests/QKey.Core.Tests.csproj
@@ -55,44 +126,48 @@ Kết quả mong đợi:
 OK: QKey .NET core tests passed
 ```
 
-## Build Windows app
-
-Trên Windows có .NET 8 SDK:
+Build Windows app:
 
 ```powershell
 dotnet publish src/QKey.Windows/QKey.Windows.csproj -c Release -r win-x64 --self-contained true
 ```
 
-Chạy file `QKey.exe` trong thư mục publish.
+File chạy nằm trong thư mục publish của project `QKey.Windows`.
 
-Repo cũng có GitHub Actions `Windows Build` để build tự động trên `windows-latest`. Mỗi tag `v*` sẽ publish artifact `QKey-win-x64.zip` vào GitHub Release.
-
-## Phím tắt Windows app
-
-- `Ctrl+Shift+V`: bật/tắt QKey.
-- `Ctrl+Shift+M`: xoay vòng Telex/VNI/Simple Telex 1/Simple Telex 2.
-
-## Cấu hình
-
-QKey lưu cấu hình tại:
+## Cấu trúc repo
 
 ```text
-%AppData%\QKey\settings.json
+src/QKey.Core/        Core engine, settings, macro, text converter
+src/QKey.Core.Tests/  Console test harness cho core engine
+src/QKey.Windows/     Windows tray app
+src/QKey.ahk          Prototype/fallback tạm thời
+python/               Prototype engine Python đời đầu
+scripts/              Script build/test phụ trợ
+docs/                 Kiến trúc, changelog, kế hoạch phát triển
 ```
 
-Tray menu hiện hỗ trợ bật/tắt:
+Tài liệu thêm:
 
-- Kiểu gõ: Telex, VNI, Simple Telex 1, Simple Telex 2.
-- Quick Telex.
-- Quick Start Consonant.
-- Quick End Consonant.
+- `docs/ARCHITECTURE.md`: kiến trúc tổng quan.
+- `docs/CHANGELOG.md`: lịch sử thay đổi.
+- `docs/QKEY_WINDOWS_NATIVE_PLAN.md`: kế hoạch native Windows.
 
 ## Roadmap
 
-- GitHub Actions build Windows `.exe` release artifact.
-- Settings UI đầy đủ cho macro, hotkey, excluded apps.
-- Spell check và restore-if-wrong-spelling.
+### Gần
+
+- Settings UI đầy đủ cho macro, hotkey và excluded apps.
 - Smart switch theo app/window.
-- Debug/log window.
+- Spell check và restore-if-wrong-spelling.
+- Debug/log window để dễ kiểm tra hook và engine.
+
+### Sau
+
 - TCVN3/VNI Windows legacy code tables.
-- TSF IME native khi core ổn định.
+- Macro UI và import/export macro.
+- Installer/signing cho Windows.
+- TSF IME native khi core engine đủ ổn định.
+
+## Ghi chú trạng thái
+
+QKey đang ở giai đoạn preview. Nếu dùng để thử nghiệm, nên test trong các app đơn giản trước như Notepad/Notepad++ rồi mới thử trong trình duyệt, editor hoặc ứng dụng chat.
