@@ -61,6 +61,8 @@ dotnet publish src/QKey.Windows/QKey.Windows.csproj -c Release -r win-x64 --self
 
 Chạy file `QKey.exe` trong thư mục publish.
 
+Repo cũng có GitHub Actions `Windows Build` để build tự động trên `windows-latest`. Mỗi tag `v*` sẽ publish artifact `QKey-win-x64.zip` vào GitHub Release.
+
 ## Phím tắt Windows app
 
 - `Ctrl+Shift+V`: bật/tắt QKey.
